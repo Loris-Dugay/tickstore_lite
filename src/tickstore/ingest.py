@@ -4,25 +4,45 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 SCHEMA = {
-    "id": "int64",
-    "price": "float64",
-    "qty": "float64",
-    "base_qty": "float64",
-    "time": "int64",
-    "is_buyer_maker": "bool"
+    "cm" : {
+        "id": "int64",
+        "price": "float64",
+        "qty": "float64",
+        "base_qty": "float64",
+        "time": "int64",
+        "is_buyer_maker": "bool"
+    },
+    "um" : {
+        "id": "int64",
+        "price": "float64",
+        "qty": "float64",
+        "quote_qty": "float64",
+        "time": "int64",
+        "is_buyer_maker": "bool"
+    }
 }
 
-def check_csv(df, schema_map):
-    schema = pd.Series(schema_map)
-    ok = (
-        set(df.columns) == set(schema.index) and
-        df.dtypes.astype(str).reindex(schema.index).eq(schema).all()
-    )
-    if not ok:
-        bad = pd.DataFrame({"found": df.dtypes.astype(str).reindex(schema.index), "expected": schema})
-        bad = bad[bad["found"].isna() | (bad["found"] != bad["expected"])]
-        print(bad)
-    return ok
+def check_csv(df: pd.DataFrame, market: str, schema_map: dict) -> bool:
+    schema = pd.Series(schema_map[market])
+    expected_cols = set(schema.keys())
+    found_cols = set(df.columns)
+    if found_cols != expected_cols:
+        missing = sorted(expected_cols - found_cols)
+        extra   = sorted(found_cols - expected_cols)
+        print({"status": "wrong_columns", "missing": missing, "extra": extra})
+        return False
+
+    order = list(schema.keys())  # aligne l'ordre
+    expected = pd.Series(schema, index=order)
+    found = df.dtypes.astype(str).reindex(order)
+
+    bad_mask = found != expected
+    if bad_mask.any():
+        bad = pd.DataFrame({"found": found[bad_mask], "expected": expected[bad_mask]})
+        # print(bad)
+        raise TypeError(f"type_mismatch for market='{market}'")
+
+    return True
 
 
 def read_csv(csv_file):
@@ -41,12 +61,12 @@ def write_parquet(df, parquet_file):
 def ingest(csv_file, parquet_file, market, symbol):
     list_file = os.listdir(csv_file)
     for file in list_file:
-        if (file.find("trades") != -1):
+        if (file.find("trades") != -1) and symbol in file:
             df = read_csv(csv_file + file)
-            if check_csv(df, SCHEMA) == True:
-                write_parquet(df, parquet_file + file.split(".")[0] + ".parquet")
-        else:
-            print("Non accetable file : ", file)
+            try:
+                if check_csv(df, market, SCHEMA): write_parquet(df, parquet_file + file.split(".")[0] + ".parquet")
+            except TypeError:
+                print("Bad error type on file : ", file)
 
 if __name__ == "__main__":
     ingest("data/sample/", "data/lake/", "cm", "BTCUSD")
