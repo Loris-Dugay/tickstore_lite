@@ -45,28 +45,43 @@ def check_csv(df: pd.DataFrame, market: str, schema_map: dict) -> bool:
     return True
 
 
-def read_csv(csv_file):
-    csv_file_path = csv_file
-    df = pd.read_csv(csv_file_path)
+def read_csv(csv_file: str, dedup: bool) -> pd.DataFrame:
+    df = pd.read_csv(csv_file)
+    if dedup:
+        df["nb_dedup"] = df.duplicated()
+        nb_dedup = len(df.loc[df["nb_dedup"]])
+        print("number of row erased from dedupe : ", nb_dedup)
+        df = df.drop(["nb_dedup"], axis=1)
+        return df.drop_duplicates()
     return df
 
 
-def write_parquet(df, parquet_file):
-    df["time"] = pd.to_datetime(df["time"], unit="ms", utc=True)
-    table = pa.Table.from_pandas(df)
-    parquet_file_path = parquet_file
-    pq.write_table(table, parquet_file_path)
+def write_parquet(df: pd.DataFrame, parquet_file: str, dry_run, market: str, symbol: str) -> None:
+    if dry_run:
+        pass
+    else:
+        if market == "cm":
+            df["quote_qty"] = pd.Series(pd.NA, index=df.index, dtype="Float64")
+        else:
+            df["base_qty"] = pd.Series(pd.NA, index=df.index, dtype="Float64")
+        df["time"] = pd.to_datetime(df["time"], unit="ms", utc=True)
+        df["symbol"] = pd.Series(symbol, index=df.index)
+        table = pa.Table.from_pandas(df)
+        parquet_file_path = parquet_file
+        pq.write_table(table, parquet_file_path)
 
 
-def ingest(csv_file, parquet_file, market, symbol):
+def ingest(csv_file: str, parquet_file: str, market: str, symbol: str, dedup: bool, dry_run: bool) -> int:
     list_file = os.listdir(csv_file)
     for file in list_file:
         if (file.find("trades") != -1) and symbol in file:
-            df = read_csv(csv_file + file)
+            df = read_csv(csv_file + file, dedup)
             try:
-                if check_csv(df, market, SCHEMA): write_parquet(df, parquet_file + file.split(".")[0] + ".parquet")
-            except TypeError:
-                print("Bad error type on file : ", file)
+                if check_csv(df, market, SCHEMA): write_parquet(df, parquet_file + file.split(".")[0] + ".parquet", dry_run, market, symbol)
+            except TypeError as e:
+                print(e)
+    return 0
+
 
 if __name__ == "__main__":
-    ingest("data/sample/", "data/lake/", "cm", "BTCUSD")
+    ingest("data/sample/", "data/lake/", "um", "BTCUSD", True, False)
