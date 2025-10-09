@@ -160,18 +160,39 @@ def write_parquet(df, output):
     pq.write_table(table, parquet_file_path)
 
 
+def create_dir_and_file(path, file, output_path, tick, tick_corrected):
+    tick_folder = "bar_" + tick
+    dir_name = output_path + tick_folder + "/"
+    os.makedirs(dir_name, exist_ok=True)
+    m = re.search(r'(\d{4}-\d{2}-\d{2})(?=\.parquet$)', file)
+    date = m.group(1)
+    date_start = pd.to_datetime(date)
+    date_end = date_start + pd.Timedelta(days=1)
+
+    df = compute(path + file, tick_corrected, date_start.strftime("%Y-%m-%d %H:%M:%S"), date_end.strftime("%Y-%m-%d %H:%M:%S"))
+    output_file_name = tick_folder + "_" + file.split("_")[0] + "_" + date
+    write_parquet(df, dir_name + output_file_name + ".parquet")
+
+
 def compute_bar(parquet_file, output, tick):
     list_file = os.listdir(parquet_file)
+    tick_corrected = None
+
+    if "s" in tick and int(tick.split("s")[0]) > 0 and int(tick.split("s")[0]) < 61:
+        tick_corrected = int(tick.split("s")[0])
+    elif "m" in tick and int(tick.split("m")[0]) > 0 and int(tick.split("m")[0]) < 61:
+        tick_corrected = int(tick.split("m")[0]) * 60
+    elif "h" in tick and int(tick.split("h")[0]) > 0 and int(tick.split("h")[0]) < 25:
+        tick_corrected = int(tick.split("h")[0]) * 3600
+    elif "d" in tick and int(tick.split("d")[0]) == 1:
+        tick_corrected = 86400
+    else:
+        raise ValueError(f"Error on the tick range, he can't go higher than 1 day and lower than 1 second : '{tick}'")
+
     for file in list_file:
-        m = re.search(r'(\d{4}-\d{2}-\d{2})(?=\.parquet$)', file)
-        date = m.group(1)
-        date_start = pd.to_datetime(date)
-        date_end = date_start + pd.Timedelta(days=1)
-        df = compute(parquet_file + file, tick, date_start.strftime("%Y-%m-%d %H:%M:%S"), date_end.strftime("%Y-%m-%d %H:%M:%S"))
-        output_file_name = "bar_1s_" + file.split("_")[0] + "_" + date
-        write_parquet(df, output + output_file_name + ".parquet")
+        create_dir_and_file(parquet_file, file, output, tick, tick_corrected)
 
 
 if __name__ == "__main__":
     tick = 3600 * 6
-    compute_bar("data/lake/", "data/derived/bars_1s/", tick)
+    compute_bar("data/lake/", "data/derived/", "6h")
