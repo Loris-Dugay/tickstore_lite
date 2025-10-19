@@ -1,0 +1,3 @@
+input: "src/downloader/urls_list.json"
+output: "data/raw"
+workers: 10

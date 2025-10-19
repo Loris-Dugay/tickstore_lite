@@ -1,3 +1,9 @@
 duckdb
 pandas>=2.2
 pyarrow>=15
+request
+pyspark
+delta-spark
+deltalake
+pyyaml
+pydantic

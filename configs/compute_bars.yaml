@@ -1,0 +1,15 @@
+spark:
+  format: "delta"
+  partitions: 200
+  mode: "append"
+paths:
+  input: "data/transformed/"
+  output: "data/bars/"
+repartition_cols:
+  - "symbol"
+  - "bucket"
+sort_cols:
+  - "symbol"
+  - "open_time"
+columns:
+  timestamp: "ts"

@@ -1,0 +1,5 @@
+input: "data/raw/"
+output: "data/transformed"
+ratio_binance: 100
+numPartitions: 200
+maxRecordsPerFile: 100000

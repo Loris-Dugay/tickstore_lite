@@ -1,0 +1,8 @@
+name: "TickStoreMetrics"
+driver_memory: "12g"
+executor_memory: "6g"
+sql:
+  extensions: "io.delta.sql.DeltaSparkSessionExtension"
+  spark_catalog: "org.apache.spark.sql.delta.catalog.DeltaCatalog"
+  AQE: "true"
+  timezone: "GMT"
