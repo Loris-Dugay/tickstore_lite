@@ -151,6 +151,7 @@ def generate_last_value(new_ohlc_df: DataFrame, timeframe: str) -> DataFrame:
 
     return corrected_df
 
+
 def compute_ohlcv(df: DataFrame, config: dict, time: str) -> None:
     try :
         timeframe = change_time_unit(time)
@@ -177,7 +178,7 @@ def compute_ohlcv(df: DataFrame, config: dict, time: str) -> None:
         print(f"Error : {e}")
 
 
-def open_delta(config, time_bars) -> None:
+def open_delta(config) -> DataFrame:
     spark = spark_builder()
 
     cwd = Path.cwd()
@@ -189,9 +190,14 @@ def open_delta(config, time_bars) -> None:
         F.min("date").alias("min_date"),
         F.max("date").alias("max_date")
     ).collect())
+    return df
+
+
+def compute_bars(config, time_bars):
+    df = open_delta(config)
     compute_ohlcv(df, config, time_bars)
 
 
 if __name__ == "__main__":
     config = load_config("compute_bars")
-    open_delta(config, "1m")
+    compute_bars(config, "1m")
