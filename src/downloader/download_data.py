@@ -1,4 +1,6 @@
 import requests
+import os
+from pathlib import Path
 import json
 import io
 import zipfile
@@ -25,12 +27,19 @@ def execute(input, output, workers):
     with open(input, "r") as f:
         data = json.load(f)
 
+    cwd = Path.cwd()
+    output_path = str(cwd / output)
+    print(output_path)
+
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
     urls = []
     for url in data["entries"]:
         urls.append(url["url"])
 
     with ThreadPoolExecutor(max_workers=workers) as executor:
-        list(tqdm(executor.map(download_and_extract, urls, repeat(output)), total=len(urls)))
+        list(tqdm(executor.map(download_and_extract, urls, repeat(output_path)), total=len(urls)))
 
 if __name__ == "__main__":
     config = load_config("downloader")

@@ -17,8 +17,7 @@ def generate_url(config: dict, date_start: date, date_end: date, market: str) ->
                 symbol = symbol + "T"
             else:
                 symbol = symbol + "_PERP"
-            url = pattern.format(market=market, symbol=symbol, d=d)
-            # new_url = f"https://data.binance.vision/data/futures/{market}/daily/trades/{symbol}/{symbol}-trades-{d}.zip"
+            url = pattern.format(market=market, symbol=symbol, d=d.strftime("%Y-%m-%d"))
             entries.append({
                 "date": d.strftime("%Y-%m-%d"),
                 "symbol": symbol,

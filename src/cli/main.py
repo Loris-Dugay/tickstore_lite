@@ -1,5 +1,5 @@
 import click
-from commands import download, generate, transformation_preprocess, transformation_bars
+from src.cli.commands import download, generate, transformation_preprocess, transformation_bars
 
 @click.group()
 def main():
