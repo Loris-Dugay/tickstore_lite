@@ -1,0 +1,45 @@
+input: "data/bars/"
+output: "data/visualisations"
+
+plotly:
+  layout:
+    height: 600 # Hauteur du graphique
+    margin:
+      top: 50
+      bottom: 50
+      left: 50
+      right: 50
+    title:
+      text: "{title}"
+      x: 0.5
+      xanchor: "center"
+    xaxis:
+      domain: [0, 1]
+      title: "Time"
+      type: "date"
+      tickformat: "%Y-%m-%d %H:%M" # Format pour plusieurs jours
+      rangeslider:
+        visible: false # Afficher le slider temporel
+    yaxis:
+      title: "Price (USDT)"
+      domain: [0.3, 1]
+    yaxis2:
+      title: "Volume ({symbol})" # {symbol} sera remplacé dynamiquement
+      domain: [0, 0.25]
+      anchor: "x"
+    grid:
+      rows: 2
+      columns: 1
+      subplots: [["xy"], ["xy2"]]
+      roworder: "top to bottom"
+    showlegend: true
+  styles:
+    candlestick:
+      increasing_color: "#00ff00" # Couleur pour bougies haussières
+      decreasing_color: "#ff0000" # Couleur pour bougies baissières
+    volume:
+      color: "#1f77b4"
+      opacity: 0.5
+    vwap:
+      color: "#ffa500"
+      width: 1

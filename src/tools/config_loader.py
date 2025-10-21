@@ -31,12 +31,81 @@ class PreProcessConfig(BaseModel):
     numPartitions: int
     maxRecordsPerFile: int
 
-class ComputeBars(BaseModel):
+class ComputeBarsConfig(BaseModel):
     spark: Dict[str, Any]
     paths: Dict[str, str]
     repartition_cols: List[str]
     sort_cols: List[str]
     columns: Dict[str, str]
+
+class Margin(BaseModel):
+    top: int
+    bottom: int
+    left: int
+    right: int
+
+class Title(BaseModel):
+    text: str  # Ex. "{title}" – sera remplacé dynamiquement
+    x: float
+    xanchor: str  # Ex. "center"
+
+class XAxis(BaseModel):
+    domain: List[int]
+    title: str
+    type: str  # Ex. "date"
+    tickformat: str  # Ex. "%Y-%m-%d %H:%M"
+    rangeslider: dict  # Sous-dict pour visible: bool
+
+class YAxis(BaseModel):
+    title: str
+    domain: List[float]  # Ex. [0.3, 1]
+
+class YAxis2(BaseModel):
+    title: str  # Ex. "Volume ({symbol})" – sera remplacé dynamiquement
+    domain: List[float]  # Ex. [0, 0.25]
+    anchor: str  # Ex. "x"
+
+class Grid(BaseModel):
+    rows: int
+    columns: int
+    subplots: List[List[str]]  # Ex. [["xy"], ["xy2"]]
+    roworder: str  # Ex. "top to bottom"
+
+class Layout(BaseModel):
+    height: int
+    margin: Margin
+    title: Title
+    xaxis: XAxis
+    yaxis: YAxis
+    yaxis2: YAxis2
+    grid: Grid
+    showlegend: bool
+
+class CandlestickStyle(BaseModel):
+    increasing_color: str  # Ex. "#00ff00"
+    decreasing_color: str  # Ex. "#ff0000"
+
+class VolumeStyle(BaseModel):
+    color: str
+    opacity: float  # Ex. 0.5
+
+class VwapStyle(BaseModel):
+    color: str
+    width: int
+
+class Styles(BaseModel):
+    candlestick: CandlestickStyle
+    volume: VolumeStyle
+    vwap: VwapStyle
+
+class Plotly(BaseModel):
+    layout: Layout
+    styles: Styles
+
+class PlotlyConfig(BaseModel):
+    input: str
+    output: str
+    plotly: Plotly
 
 def load_config(module: str, overrides: dict = None) -> dict:
     """Load and validate YAML config for a module."""
@@ -59,7 +128,10 @@ def load_config(module: str, overrides: dict = None) -> dict:
             config = PreProcessConfig(**config).model_dump()
 
         if module == "compute_bars":
-            config = ComputeBars(**config).model_dump()
+            config = ComputeBarsConfig(**config).model_dump()
+
+        if module == "plots":
+            config = PlotlyConfig(**config).model_dump()
 
         if overrides:
             config.update(overrides)
