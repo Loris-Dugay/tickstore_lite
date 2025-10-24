@@ -16,8 +16,8 @@ from src.url_generator.generate_urls import generate_json
     help="End date range (YYYY-MM-DD)"
 )
 @click.option("--symbols", default = None, help = "List name of symbols", multiple=True)
-@click.option("--market", default = None, help = "Type of market (um/cm)")
 @click.option("--output", default = None, help = "Path and name of the json file")
+@click.option("--market", default = None, help = "Type of market (um/cm)")
 
 def generate(config: str,
     date_start: date,
@@ -27,7 +27,7 @@ def generate(config: str,
     output: str
 ):
     overrides = {}
-    if symbols is not None:
+    if symbols:
         overrides["symbols"] = symbols
     if output is not None:
         overrides["output_path"] = output

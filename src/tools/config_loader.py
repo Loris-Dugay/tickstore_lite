@@ -1,12 +1,17 @@
 import os
 import logging
 import yaml
+from pathlib import Path
 from pydantic import BaseModel, ValidationError
 from typing import Any, List, Dict
 
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, filename="logs/pipeline.log")
+logs_path = str(Path.cwd() / "logs")
+
+if not os.path.exists(logs_path):
+    os.makedirs(logs_path)
+
+logging.basicConfig(level=logging.INFO, filename=f"{logs_path}/pipeline.log")
 logger = logging.getLogger(__name__)
 
 class ConfigError(Exception):
