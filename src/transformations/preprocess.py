@@ -4,8 +4,6 @@ from pyspark.sql.functions import col, to_timestamp, lit, when
 from src.tools.spark_builder import spark_builder
 from src.tools.config_loader import load_config
 
-RATIO_BINANCE = 100
-
 
 def process_dataframe(input_path, file, ratio_binance, spark):
     print(f"Processing {file}")
@@ -52,38 +50,10 @@ def preprocess(input: str, output: str, ratio_binance: int, numPartitions: int, 
         files = [f for f in os.listdir(input_path) if f.endswith(".csv")]
         dfs = []
         for file in files:
-            # print(f"Processing {file}")
-            # symbol, _, date = file.rpartition("-trades-")
-            # date = date.split(".")[0]
-
-            # df = spark.read.csv(os.path.join(input_path, file), header=True, inferSchema=True)
-
-            # df = df.withColumn("symbol", lit(symbol))                               \
-            #        .withColumn("date", lit(date).cast("date"))                      \
-            #        .withColumn("ts", to_timestamp(col("time") / 1000))              \
-            #        .withColumn("market", lit("cm" if "_PERP" in file else "um"))    \
-            #        .withColumn("quote_qty",
-            #            when(
-            #                col("market") == lit("cm"),
-            #                col("qty") * lit(RATIO_BINANCE) / col("quote_qty")
-            #            ).otherwise(col("quote_qty")))
-            # df = df.filter(col("price") > 0).dropna()
             df = process_dataframe(input_path, file, ratio_binance, spark)
             dfs.append(df)
 
         if dfs:
-            # union_df = dfs[0]
-            # for df in dfs[1:]:
-            #     union_df = union_df.unionByName(df, allowMissingColumns=True)
-            # union_df = union_df.repartition(200, "symbol", "date")
-
-            # union_df.write.format("delta").mode("overwrite")    \
-            #     .partitionBy("symbol", "date")                  \
-            #     .option("maxRecordsPerFile", 100000)            \
-            #     .save(output_path)
-
-            # union_df.unpersist()
-            # print(f"Written unified Delta table to {output_path}")
             write_processed_file(dfs, numPartitions, maxRecordsPerFile, str(output_path))
 
         print("Running OPTIMIZE on unified lake...")
