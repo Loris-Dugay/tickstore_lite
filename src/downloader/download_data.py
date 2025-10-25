@@ -4,7 +4,6 @@ from pathlib import Path
 import json
 import io
 import zipfile
-import gzip
 from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
 from itertools import repeat
@@ -17,9 +16,6 @@ def download_and_extract(url, output_dir):
         if url.endswith('.zip'):
             with zipfile.ZipFile(io.BytesIO(resp.content)) as z:
                 z.extractall(output_dir)
-        elif url.endswith('.gz'):
-            with gzip.open(io.BytesIO(resp.content), 'rt') as f:
-                f.write(output_dir)
     return url
 
 

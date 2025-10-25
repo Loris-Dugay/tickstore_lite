@@ -8,46 +8,22 @@ def check_bars(input: str, check: str) -> int:
     check_dir = str(Path.cwd() / check)
     df = pl.read_delta(input_dir)
 
-    df_btc = df.filter((pl.col("symbol") == "BTCUSDT"))
-    df_bch = df.filter((pl.col("symbol") == "BCHUSDT"))
-    df_mana = df.filter((pl.col("symbol") == "MANAUSDT"))
+    symbols = df.unique(subset="symbol", keep="first")
+    generated_bars = {}
 
-    df_btc = df_btc.select(pl.col("open").cast(pl.Float64).round(5),
-        pl.col("high").cast(pl.Float64).round(5),
-        pl.col("low").cast(pl.Float64).round(5),
-        pl.col("close").cast(pl.Float64).round(5),
-        pl.col("volume").cast(pl.Float64).round(5),
-        pl.col("quote_volume").cast(pl.Float64).round(5),
-        pl.col("count").cast(pl.Int64),
-        pl.col("taker_buy_volume").cast(pl.Float64).round(5),
-        pl.col("taker_buy_quote_volume").cast(pl.Float64).round(5)).with_row_index("index")
-
-    df_bch = df_bch.select(pl.col("open").cast(pl.Float64).round(5),
-        pl.col("high").cast(pl.Float64).round(5),
-        pl.col("low").cast(pl.Float64).round(5),
-        pl.col("close").cast(pl.Float64).round(5),
-        pl.col("volume").cast(pl.Float64).round(5),
-        pl.col("quote_volume").cast(pl.Float64).round(5),
-        pl.col("count").cast(pl.Int64),
-        pl.col("taker_buy_volume").cast(pl.Float64).round(5),
-        pl.col("taker_buy_quote_volume").cast(pl.Float64).round(5)).with_row_index("index")
-
-    df_mana = df_mana.select(pl.col("open").cast(pl.Float64).round(5),
-        pl.col("high").cast(pl.Float64).round(5),
-        pl.col("low").cast(pl.Float64).round(5),
-        pl.col("close").cast(pl.Float64).round(5),
-        pl.col("volume").cast(pl.Float64).round(5),
-        pl.col("quote_volume").cast(pl.Float64).round(5),
-        pl.col("count").cast(pl.Int64),
-        pl.col("taker_buy_volume").cast(pl.Float64).round(5),
-        pl.col("taker_buy_quote_volume").cast(pl.Float64).round(5)).with_row_index("index")
-
-
-    generated_bars = {
-        "BTC" : df_btc,
-        "BCH": df_bch,
-        "MANA": df_mana
-    }
+    for symbol in symbols["symbol"]:
+        key = symbol.split("USD")[0]
+        df_tmp = df.filter(pl.col("symbol") == symbol)
+        df_tmp = df_tmp.select(pl.col("open").cast(pl.Float64).round(5),
+            pl.col("high").cast(pl.Float64).round(5),
+            pl.col("low").cast(pl.Float64).round(5),
+            pl.col("close").cast(pl.Float64).round(5),
+            pl.col("volume").cast(pl.Float64).round(5),
+            pl.col("quote_volume").cast(pl.Float64).round(5),
+            pl.col("count").cast(pl.Int64),
+            pl.col("taker_buy_volume").cast(pl.Float64).round(5),
+            pl.col("taker_buy_quote_volume").cast(pl.Float64).round(5)).with_row_index("index")
+        generated_bars[key] = df_tmp
 
     compare_check = {}
     check_files = os.listdir(check_dir)
