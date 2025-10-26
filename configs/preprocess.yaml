@@ -3,3 +3,9 @@ output: "data/transformed"
 ratio_binance: 100
 numPartitions: 200
 maxRecordsPerFile: 100000
+partition_columns:
+  - symbol
+  - date
+write_mode: "overwrite"
+partition_overwrite_mode: "dynamic"
+sort_within_partitions: true

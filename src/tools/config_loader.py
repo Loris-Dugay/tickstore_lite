@@ -3,7 +3,7 @@ import logging
 import yaml
 from pathlib import Path
 from pydantic import BaseModel, ValidationError, Field
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Optional
 
 
 logs_path = str(Path.cwd() / "logs")
@@ -36,9 +36,13 @@ class DownloaderConfig(BaseModel):
 class PreProcessConfig(BaseModel):
     input: str
     output: str
-    ratio_binance: int
-    numPartitions: int
-    maxRecordsPerFile: int
+    ratio_binance: int = Field(100, gt=0)
+    numPartitions: Optional[int] = Field(default=None, gt=0)
+    maxRecordsPerFile: Optional[int] = Field(default=None, gt=0)
+    partition_columns: List[str] = Field(default_factory=lambda: ["symbol", "date"])
+    write_mode: str = Field(default="overwrite")
+    partition_overwrite_mode: Optional[str] = Field(default="dynamic")
+    sort_within_partitions: bool = Field(default=False)
 
 class ComputeBarsConfig(BaseModel):
     spark: Dict[str, Any]

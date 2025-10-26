@@ -15,10 +15,4 @@ def transformation_preprocess(config: str, input: str, output: str):
 
     config_data = load_config(config, overrides=overrides)
 
-    input = config_data["input"]
-    output = config_data["output"]
-    ratio_binance = config_data["ratio_binance"]
-    numPartitions = config_data["numPartitions"]
-    maxRecordsPerFile = config_data["maxRecordsPerFile"]
-
-    preprocess(input, output, ratio_binance, numPartitions, maxRecordsPerFile)
+    preprocess(config_data)
