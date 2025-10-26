@@ -2,7 +2,7 @@ import os
 import logging
 import yaml
 from pathlib import Path
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, Field
 from typing import Any, List, Dict
 
 
@@ -27,7 +27,11 @@ class UrlGeneratorConfig(BaseModel):
 class DownloaderConfig(BaseModel):
     input: str
     output: str
-    workers: int
+    workers: int = Field(10, gt=0)
+    chunk_size: int = Field(1024 * 1024, gt=0)
+    timeout: int = Field(30, gt=0)
+    retries: int = Field(3, ge=0)
+    backoff: float = Field(0.5, ge=0)
 
 class PreProcessConfig(BaseModel):
     input: str

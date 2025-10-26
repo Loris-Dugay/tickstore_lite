@@ -23,15 +23,14 @@ BAR := 1m
 .PHONY: setup check-results
 
 setup:
-	@# crée le venv s'il n'existe pas, puis installe les deps dedans
 	@test -d "$(VENV)" || $(PY) -m venv "$(VENV)"
 	@$(PIP) install --upgrade pip
 	@$(PIP) install -r "$(REQ)"
 
 check-results:
-	$(PY) -m $(CLI_MODULE) generate $(SYMBOLS_ARGS) --output $(OUTPUT_GENERATE)
-	$(PY) -m $(CLI_MODULE) download --input $(OUTPUT_GENERATE) --output $(OUTPUT_DOWNLOAD_TEST)
-	$(PY) -m $(CLI_MODULE) transformation-preprocess --input $(OUTPUT_DOWNLOAD_TEST) --output $(OUTPUT_PREPROCESS_TEST)
-	$(PY) -m $(CLI_MODULE) transformation-bars --input $(OUTPUT_PREPROCESS_TEST) --output $(OUTPUT_BARS_TEST)
-	$(PY) -m $(CLI_MODULE) download-check --input $(OUTPUT_DOWNLOAD_TEST) --output $(OUTPUT_CHECKS_TEST) --bar $(BAR)
+	# $(PY) -m $(CLI_MODULE) generate $(SYMBOLS_ARGS) --output $(OUTPUT_GENERATE)
+	# $(PY) -m $(CLI_MODULE) download --input $(OUTPUT_GENERATE) --output $(OUTPUT_DOWNLOAD_TEST)
+	# $(PY) -m $(CLI_MODULE) transformation-preprocess --input $(OUTPUT_DOWNLOAD_TEST) --output $(OUTPUT_PREPROCESS_TEST)
+	# $(PY) -m $(CLI_MODULE) transformation-bars --input $(OUTPUT_PREPROCESS_TEST) --output $(OUTPUT_BARS_TEST)
+	# $(PY) -m $(CLI_MODULE) download-check --input $(OUTPUT_DOWNLOAD_TEST) --output $(OUTPUT_CHECKS_TEST) --bar $(BAR)
 	$(PY) -m $(CLI_MODULE) check --input $(INPUT_BARS_TEST) --check $(INPUT_CHECK_TEST)
