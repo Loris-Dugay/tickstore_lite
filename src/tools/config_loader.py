@@ -1,9 +1,10 @@
 import os
 import logging
 import yaml
+from datetime import date
 from pathlib import Path
 from pydantic import BaseModel, ValidationError, Field
-from typing import Any, List, Dict, Optional
+from typing import List, Dict, Optional
 
 
 logs_path = str(Path.cwd() / "logs")
@@ -44,12 +45,26 @@ class PreProcessConfig(BaseModel):
     partition_overwrite_mode: Optional[str] = Field(default="dynamic")
     sort_within_partitions: bool = Field(default=False)
 
+class BarsSparkConfig(BaseModel):
+    format: str
+    mode: str = Field(default="append")
+    partitions: Optional[int] = Field(default=None, gt=0)
+    max_records_per_file: Optional[int] = Field(default=None, gt=0)
+    partition_overwrite_mode: Optional[str] = Field(default=None)
+
+class BarsFiltersConfig(BaseModel):
+    symbols: List[str] = Field(default_factory=list)
+    start_date: Optional[date] = Field(default=None)
+    end_date: Optional[date] = Field(default=None)
+
 class ComputeBarsConfig(BaseModel):
-    spark: Dict[str, Any]
+    spark: BarsSparkConfig
     paths: Dict[str, str]
-    repartition_cols: List[str]
-    sort_cols: List[str]
+    repartition_cols: List[str] = Field(default_factory=list)
+    sort_cols: List[str] = Field(default_factory=list)
     columns: Dict[str, str]
+    fill_missing: bool = Field(default=True)
+    filters: BarsFiltersConfig = Field(default_factory=BarsFiltersConfig)
 
 class Margin(BaseModel):
     top: int

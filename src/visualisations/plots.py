@@ -73,7 +73,7 @@ def plot_bar(
 
     try:
         input_dir = str(Path.cwd() / config["input"] / interval)
-        df = pl.read_delta(input_dir)
+        lazy_frame = pl.scan_delta(input_dir)
     except Exception as e:
         raise ValueError(f"Error reading Delta Lake table : {e}")
 
@@ -82,31 +82,48 @@ def plot_bar(
         os.makedirs(str(output_dir))
 
     output_files = []
-    for symbol in symbols:
+    requested_symbols = list(symbols)
+
+    start = datetime.strptime(start_date, "%Y-%m-%d").date()
+    end = datetime.strptime(end_date, "%Y-%m-%d").date()
+
+    filtered_df = (
+        lazy_frame
+        .filter(pl.col("symbol").is_in(requested_symbols))
+        .filter(pl.col("bucket").is_between(start, end))
+        .select(
+            "symbol",
+            "open_time",
+            "open",
+            "high",
+            "low",
+            "close",
+            "volume",
+            "vwap",
+        )
+        .sort(["symbol", "open_time"])
+        .collect()
+    )
+
+    for symbol in requested_symbols:
         try:
-            filtered_df = df.filter(
-                (pl.col("symbol") == symbol) &
-                (pl.col("bucket").is_between(
-                    datetime.strptime(start_date, "%Y-%m-%d"),
-                    datetime.strptime(end_date, "%Y-%m-%d")
-                ))
-            ).sort("open_time")
+            symbol_df = filtered_df.filter(pl.col("symbol") == symbol)
         except Exception as e:
             print(f"Error filtering data for {symbol}: {e}")
             continue
 
-        if filtered_df.is_empty():
+        if symbol_df.is_empty():
             print(f"No data for {symbol} between {start_date} and {end_date}")
             continue
 
         data = {
-            'open_time': filtered_df['open_time'].cast(pl.String).to_list(),
-            'open': filtered_df['open'].to_list(),
-            'high': filtered_df['high'].to_list(),
-            'low': filtered_df['low'].to_list(),
-            'close': filtered_df['close'].to_list(),
-            'volume': filtered_df['volume'].to_list(),
-            'vwap': filtered_df['vwap'].to_list()
+            'open_time': symbol_df['open_time'].cast(pl.String).to_list(),
+            'open': symbol_df['open'].to_list(),
+            'high': symbol_df['high'].to_list(),
+            'low': symbol_df['low'].to_list(),
+            'close': symbol_df['close'].to_list(),
+            'volume': symbol_df['volume'].to_list(),
+            'vwap': symbol_df['vwap'].to_list()
         }
 
         simplify_symbol = symbol.split("USDT")[0]

@@ -1,7 +1,9 @@
 spark:
   format: "delta"
-  partitions: 200
   mode: "append"
+  partitions:
+  max_records_per_file:
+  partition_overwrite_mode: "dynamic"
 paths:
   input: "data/transformed/"
   output: "data/bars/"
@@ -13,3 +15,8 @@ sort_cols:
   - "open_time"
 columns:
   timestamp: "ts"
+fill_missing: true
+filters:
+  symbols: []
+  start_date:
+  end_date:

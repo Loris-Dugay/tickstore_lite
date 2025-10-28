@@ -19,7 +19,7 @@ plotly:
       type: "date"
       tickformat: "%Y-%m-%d %H:%M" # Format pour plusieurs jours
       rangeslider:
-        visible: false # Afficher le slider temporel
+        visible: true # Afficher le slider temporel
     yaxis:
       title: "Price (USDT)"
       domain: [0.3, 1]
