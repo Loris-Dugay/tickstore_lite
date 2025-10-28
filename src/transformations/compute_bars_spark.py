@@ -113,23 +113,23 @@ def _aggregate_bars(df: DataFrame, timeframe: str, timestamp_col: str) -> DataFr
 def generate_sequence(ohlc_df: DataFrame, timeframe: str) -> DataFrame:
     days = ohlc_df.select("symbol", F.to_date("bar_time").alias("d")).distinct()
 
-    grid = (
-        days.withColumn("start", F.expr("CAST(d AS TIMESTAMP)"))
+    grid = (days
+        .withColumn("start", F.expr("CAST(d AS TIMESTAMP)"))
         .withColumn(
-            "end", F.expr("CAST(d AS TIMESTAMP) + INTERVAL 1 DAY - INTERVAL 1 MICROSECOND")
-    )
-    .withColumn(
-        "bar_time",
-        F.explode(F.sequence("start", "end", F.expr(f"INTERVAL {timeframe}"))),
-    )
-    .select("symbol", "bar_time")
+            "end",
+            F.expr("CAST(d AS TIMESTAMP) + INTERVAL 1 DAY - INTERVAL 1 MICROSECOND")
+        )
+        .withColumn(
+            "bar_time",
+            F.explode(F.sequence("start", "end", F.expr(f"INTERVAL {timeframe}"))),
+        )
+        .select("symbol", "bar_time")
     )
     return grid
 
 
 def generate_last_value(new_ohlc_df: DataFrame, timeframe: str) -> DataFrame:
     window_spec = Window.partitionBy("symbol").orderBy("bar_time")
-
 
     last_value_df = (
         new_ohlc_df.select(
