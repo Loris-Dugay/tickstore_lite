@@ -1,136 +1,156 @@
-# Project 1 — TickStore Lite (SQUELETTE) 🧱
+# TickStore Lite
 
-Ce dépôt est **un squelette vide** pour réaliser le projet. Aucun code n’est fourni, seulement la structure,
-les contraintes, le barème et les modalités de rendu. **À toi d’implémenter.**
+TickStore Lite is a market data processing pipeline for trade-format data. It enables:
 
----
+* generating Binance Futures URL lists from a configuration file,
+* downloading and decompressing the corresponding trade files,
+* preparing raw data in Delta Lake format using Spark,
+* computing aggregated OHLCV bars over various time horizons,
+* checking result consistency and producing HTML visualizations.
 
-## Objectif
-Construire un mini **tick data lake** local :
-- Ingestion de **trades** (et, optionnellement, **quotes**) depuis CSV.
-- Écriture en **Parquet partitionné** (`date=YYYY-MM-DD/symbol=SYMB`).
-- Calcul de **barres 1s** (OHLC, volume, **VWAP**).
-- Exécution de **requêtes SQL** (DuckDB **ou** ClickHouse).
-- (Bonus) Jobs **Spark** équivalents batch (et streaming si tu veux).
+----
+All automation is exposed via a Python CLI (python -m src.cli.main) and a Makefile designed for reproducible executions.
 
----
+## Repository Contents
 
-## À utiliser **absolument**
-1. **Python 3.10+** et **SQL** (DuckDB **ou** ClickHouse — au moins l’un des deux).
-2. **Parquet** avec **partitionnement** par **date** et **symbol**.
-3. Une **CLI Python** (Typer ou argparse) exposant au minimum :
-   - `ingest` : CSV → Parquet
-   - `bars` : Parquet → barres 1s
-   - `checks` : contrôles de base (non-vide, nulls critiques, etc.)
-4. Un **Makefile** avec ces cibles (noms imposés) :
-   - `make setup` (création venv + install deps)
-   - `make ingest`
-   - `make bars`
-   - `make sql-queries` (exécute 5 requêtes types et écrit des résultats lisibles)
-   - `make test` (pytest)
-   - `make grade` (rapport JSON/TXT dans `out/` — tu définis la logique)
-5. **Tests PyTest** (au moins 3), couvrant ingestion + barres.
-6. **README clair** expliquant comment lancer chaque étape.
-7. **Gestion de l’horodatage** : `ts` en UTC (ou traité comme UTC) **sans mélange de timezones**.
-
-### Schémas **minimaux** attendus
-- **Trades** : `ts` (ISO8601), `symbol` (str), `price` (float), `size` (int), `exchange` (str)
-- **Quotes (optionnel)** : `ts`, `symbol`, `bid`, `bid_size`, `ask`, `ask_size`, `exchange`
-
----
-
-## Interdit / Non comptabilisé
-- ❌ **Sorties finales uniquement en CSV** (le Parquet partitionné est obligatoire).
-- ❌ **Notebooks** comme **unique** pipeline (ok pour l’exploration, mais la CLI est requise).
-- ❌ **C++/Rust** pour ce projet (on reste **Python/SQL** ; Spark en bonus).
-- ❌ Dépendances cloud payantes ou services nécessitant des clés privées.
-- ❌ Commits d’artéfacts lourds (>50 MB) dans le repo (données d’exemple légères ok).
-- ❌ Modifier le barème ci-dessous dans ton rendu (tu peux proposer un barème *bonus* séparé).
-
----
-
-## Contraintes supplémentaires
-- **Idempotence** : relancer `make ingest`/`make bars` ne doit pas casser le lake (écritures déterministes).
-- **Reproductibilité** : tout doit se lancer depuis zéro avec les cibles Make.
-- **Performance indicative (local)** : le dataset d’exemple doit s’exécuter en < 10 s.
-
----
-
-## Barème (100 pts)
-- **Ingestion & partitionnement** (20 pts)
-- **Barres 1s exactes (OHLC, volume, VWAP)** (30 pts)
-- **Requêtes SQL (5 mini)** (10 pts)
-- **Qualité & idempotence (checks, re-runs OK)** (15 pts)
-- **Automatisation & clarté (Makefile/README/tests)** (15 pts)
-- **(Bonus) Spark track** (10 pts)
-
-> La note finale inclut une courte revue de code (lisibilité, structure, docstrings, logs).
-
----
-
-## Modalités de rendu
-**Option A — GitHub (préféré)**  
-- Repo public nommé `tickstore-lite-<ton_pseudo>`
-- Inclure ce README (complété), le **Makefile** et les scripts.
-- Tag `v1.0` quand c’est prêt.
-
-**Option B — Archive**  
-- Envoyer un `.zip` du dossier (sans venv), avec `data/sample/` **léger** pour reproduire.
-
-### Ce que je lancerai pour te noter
-```bash
-make setup
-make ingest
-make bars
-make sql-queries
-make test
-make grade
-```
-- Les résultats attendus :  
-  - Parquet sous `data/lake/` et `data/derived/bars_1s/` (partitionné `date, symbol`).
-  - `out/grade_report.json` + `out/grade_report.txt` avec métriques clés (lignes ingérées, nb de barres, timings, checks OK/KO).
-
----
-
-## Structure fournie (à compléter)
 ```
 .
-├── README.md
-├── requirements.txt               # à compléter par toi
-├── requirements-spark.txt         # optionnel (Spark)
-├── pyproject.toml                 # metadata outillage (peut rester minimal)
-├── Makefile                       # cibles imposées (TODO)
-├── conf/
-│   └── example_config.yaml        # exemple de config (TODO)
+├── Makefile                  # Automation targets for the CLI
+├── README.md                 # This document
+├── configs/                  # YAML configuration files
+├── requirements.txt          # Python dependencies
 ├── src/
-│   └── tickstore/
-│       ├── __init__.py
-│       ├── cli.py                 # CLI (vide)
-│       ├── ingest.py              # ingestion (vide)
-│       ├── compute_bars.py        # barres 1s (vide)
-│       └── quality_checks.py      # checks (vide)
-├── jobs/
-│   └── spark/
-│       ├── batch_ingest.py        # (vide)
-│       └── compute_bars_spark.py  # (vide)
-├── tests/
-│   └── test_sample.py             # (vide) — à remplir
-├── tools/
-│   └── grade.py                   # (vide) — à définir par toi
-├── data/
-│   ├── sample/                    # mets quelques CSV légers ici
-│   ├── lake/                      # sorties Parquet (ingestion)
-│   └── derived/
-│       └── bars_1s/               # sorties Parquet (barres)
-└── .github/workflows/ci.yml       # pytest basique (TODO)
+│   ├── cli/                  # CLI commands (Click)
+│   ├── downloader/           # Multi-threaded archive downloading
+│   ├── tools/                # Configuration loading, Spark builder, utilities
+│   ├── transformations/      # Pre-processing and bar computation via Spark
+│   ├── url_generator/        # Binance URL generation
+│   └── visualisations/       # HTML report generation (Plotly)
+└── tests/                    # Demo datasets and checks
+ ```
+
+----
+## Prerequisites
+
+* Python 3.13 or higher
+* Java 17+ (required for PySpark)
+* Network access to download Binance archives
+> **Tip**: The project uses Delta Lake. On macOS/Linux, install openjdk and set the JAVA_HOME environment variable if PySpark doesn't detect it automatically.
+
+## Installation
+
+1. Create a virtual environment and install dependencies:
+   ```bash
+   make setup
+   ```
+   This target creates a venv (`.venv`) and installs `requirements.txt`.
+
+2. Activate the virtual environment:
+   ```bash
+   source .venv/bin/activate
+   ```
+
+3. Check the available commands:
+   ```bash
+   make help
+   ```
+
+## CLI Usage
+
+All commands are run via python -m src.cli.main <command> [options]. The Makefile provides shortcuts for most scenarios.
+
+### URL Generation
+
+```bash
+make generate GENERATE_CONFIG=url_generator GENERATE_DATE_START=2025-09-01 GENERATE_DATE_END=2025-09-07 GENERATE_OUTPUT=data/urls.json GENERATE_SYMBOLS="BTCUSDT ETHUSDT"
 ```
 
----
+* Configuration file : `configs/url_generator.yaml`
+* Modifiable parameters: symbol(s), time window, market (`--market`), output path (`--output`).
+* If the **GENERATE_SYMBOLS** parameter is not specified, the symbols from **url_generator.yaml** will be used.
 
-## Conseils
-- Commence par un petit dataset (2–3 symboles, quelques secondes).  
-- Valide d’abord en **DuckDB** (plus simple), puis ajoute **ClickHouse** si tu veux.  
-- Garde les **logs structurés** (niveau INFO), et un `--dry-run` utile.  
-- La piste **Spark** est un **bonus** (montre batch d’abord).
+The output file is a JSON containing the URL and associated metadata for each day/symbol.
 
-Bon courage ! 🚀
+### Data Download
+
+```bash
+make download DOWNLOAD_INPUT=data/urls.json DOWNLOAD_OUTPUT=data/raw DOWNLOAD_WORKERS=8
+```
+
+The `src.downloader.download_data` module downloads archives in parallel, handles retries, and automatically extracts `.zip` files.
+
+### Spark Pre-processing
+
+```bash
+make transformation-preprocess TP_INPUT=data/raw TP_OUTPUT=data/preprocessed
+```
+
+* Reads CSVs with a strict schema (`TRADE_SCHEMA`).
+* Adds columns `symbol`, `date`, `market`, converts timestamp to `ts` column.
+* Optional adjustment of `quote_qty` for coin-margined markets.
+* Writes in partitioned Delta format.
+
+Spark options (partitions, `maxRecordsPerFile`, write mode, sorting) are configured via `configs/preprocess.yaml`.
+
+### OHLCV Bar Computation
+
+```bash
+make transformation-bars TB_INPUT=data/preprocessed TB_OUTPUT=data/bars TB_BAR=1m
+```
+
+* Loads Delta data.
+* Aggregates by time window (`compute_ohlcv`).
+* Optional gap filling (`fill_missing`) from last known values.
+* Writes partitioned Delta by date/symbol (under `bucket=`).
+
+Duration conversion (`1m`, `1h`, …) is handled by `src.tools.change_time_unit`, and Spark parameters by `configs/compute_bars.yaml`.
+
+### Checks & Visualizations
+
+* **Bar checks** : `make check CHECK_INPUT=tests/data/bars/1_minute CHECK_CHECK=tests/data/checks/1_minute`
+* **Download reference bars** : `make download-check`
+* **Plotly visualization** : `make visualisation VIS_INPUT=data/bars VIS_MODE=1_minute`
+
+HTML files are generated in the folder defined by `configs/plots.yaml`.
+
+### Full Integration Pipeline
+
+To replay the entire pipeline on test fixtures:
+```bash
+make check-results
+```
+This target generates URLs, downloads test files, prepares data, computes bars, and compares the result to Binance-provided bars.
+
+### Cleanup
+
+* `make clear` removes main artifacts (`src/downloader/urls_list.json`, `data/`).
+* `make clear-test` removes integration artifacts under `tests/data`.
+* `make clear-env` removes the virtualenv.
+* `make clear-all` combines the three previous commands.
+
+## Configuration
+
+Each module consumes a YAML file located in `configs/`. Structures are validated by Pydantic (see `src/tools/config_loader.py`). You can create a variant by duplicating an existing file and passing its name to the corresponding command:
+
+```bash
+make download DOWNLOAD_CONFIG=downloader_custom DOWNLOAD_INPUT=... DOWNLOAD_OUTPUT=...
+```
+
+Arguments passed override file values (e.g., `DOWNLOAD_WORKERS`, `TB_BAR`, etc.).
+
+## Tests
+
+The `tests/` folder contains:
+
+* utility scripts (`tests/check_bars.py`, `tests/download_checks.py`) used by the CLI
+* example datasets to verify pipeline functionality.
+* Note: in some comparisons between Binance klines data and generated data, unexplained differences may occur, particularly on **quote_volume** and **taker_buy_quote_volume**. Even recalculating (simple sums) fails to match Binance results on certain datasets.
+
+You can run the validation flow with make `check-results`. Adding complementary unit tests is straightforward with PyTest.
+
+## Troubleshooting
+
+* **PySpark won't start** : check your Java installation (`java -version`) and set `export JAVA_HOME=/chemin/vers/java`.
+* **Slow downloads** : augmentez `DOWNLOAD_WORKERS` ou `DOWNLOAD_CHUNK_SIZE`.
+* **Missing data in bars** : ensure filters in `configs/compute_bars.yaml` cover the desired period/symbol.
+* **Empty visualization** : the Delta reader via Polars requires the folder `data/bars/<interval>` to exist and contain expected columns (`open_time`, `open`, `high`, `low`, `close`, `volume`, `vwap`).
