@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Dict, Any, Optional, List
+from typing import Any, Dict, List, Optional
 
 import polars as pl
 
@@ -49,9 +49,7 @@ def compute_asset_metrics(config: Dict[str, Any]) -> None:
 
     pivot = pivot.select(["symbol"] + date_cols_sorted)
 
-    pivot = pivot.with_columns(
-        pl.sum_horizontal(date_cols_sorted).alias("Total")
-    )
+    pivot = pivot.with_columns(pl.sum_horizontal(date_cols_sorted).alias("Total"))
 
     total_row_data: Dict[str, Any] = {"symbol": "Total"}
     for col in date_cols_sorted:
@@ -80,10 +78,16 @@ def _print_table(df: pl.DataFrame, date_cols: list) -> None:
     col_widths: Dict[str, int] = {}
     for col in display_cols:
         header_width = len(str(col))
-        max_val_width = max(
-            (len(_format_number(v)) for v in df[col].to_list()),
-            default=0,
-        )
+        if col == "symbol":
+            max_val_width = max(
+                (len(str(v)) for v in df[col].to_list()),
+                default=0,
+            )
+        else:
+            max_val_width = max(
+                (len(_format_number(v)) for v in df[col].to_list()),
+                default=0,
+            )
         col_widths[col] = max(header_width, max_val_width) + 2
 
     header = "".join(str(col).rjust(col_widths[col]) for col in display_cols)
