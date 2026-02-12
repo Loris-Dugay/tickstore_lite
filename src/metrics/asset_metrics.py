@@ -80,10 +80,16 @@ def _print_table(df: pl.DataFrame, date_cols: list) -> None:
     col_widths: Dict[str, int] = {}
     for col in display_cols:
         header_width = len(str(col))
-        max_val_width = max(
-            (len(_format_number(v)) for v in df[col].to_list()),
-            default=0,
-        )
+        if col == "symbol":
+            max_val_width = max(
+                (len(str(v)) for v in df[col].to_list()),
+                default=0,
+            )
+        else:
+            max_val_width = max(
+                (len(_format_number(v)) for v in df[col].to_list()),
+                default=0,
+            )
         col_widths[col] = max(header_width, max_val_width) + 2
 
     header = "".join(str(col).rjust(col_widths[col]) for col in display_cols)
