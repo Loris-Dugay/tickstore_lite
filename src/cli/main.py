@@ -1,5 +1,5 @@
 import click
-from src.cli.commands import download, generate, transformation_preprocess, transformation_bars, visualisation, check, download_check
+from src.cli.commands import download, generate, transformation_preprocess, transformation_bars, visualisation, check, download_check, metrics
 
 @click.group()
 def main():
@@ -12,6 +12,7 @@ main.add_command(transformation_bars.transformation_bars)
 main.add_command(visualisation.visualisation)
 main.add_command(check.check)
 main.add_command(download_check.download_check)
+main.add_command(metrics.metrics)
 
 if __name__ == "__main__":
     main()
