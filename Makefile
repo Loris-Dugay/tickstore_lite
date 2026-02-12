@@ -106,6 +106,29 @@ VIS_ARGS := \
         $(call opt_arg,--output,$(VIS_OUTPUT)) \
         $(call opt_arg,--mode,$(VIS_MODE))
 
+METRICS_CONFIG ?=
+METRICS_INPUT ?=
+METRICS_SYMBOLS ?=
+METRICS_START_DATE ?=
+METRICS_END_DATE ?=
+
+ifeq ($(origin METRICS_SYMBOLS),command line)
+    ifeq ($(strip $(METRICS_SYMBOLS)),)
+        METRICS_SYMBOLS_ARGS :=
+    else
+        METRICS_SYMBOLS_ARGS := $(call add_symbols,$(METRICS_SYMBOLS))
+    endif
+else
+    METRICS_SYMBOLS_ARGS :=
+endif
+
+METRICS_ARGS := \
+        $(call opt_arg,--config,$(METRICS_CONFIG)) \
+        $(call opt_arg,--input,$(METRICS_INPUT)) \
+        $(call opt_arg,--start_date,$(METRICS_START_DATE)) \
+        $(call opt_arg,--end_date,$(METRICS_END_DATE)) \
+        $(METRICS_SYMBOLS_ARGS)
+
 OUTPUT_GENERATE := src/downloader/urls_list.json
 
 OUTPUT_GENERATE_TEST := tests/urls_list.json
@@ -122,7 +145,7 @@ DATA_TEST := tests/data
 
 BAR := 1m
 
-.PHONY: help setup generate download transformation-preprocess transformation-bars download-check check visualisation check-results clear clear-test clear-env clear-all
+.PHONY: help setup generate download transformation-preprocess transformation-bars download-check check visualisation metrics check-results clear clear-test clear-env clear-all
 
 help:
 	@echo "Usage: make <target> [VARIABLE=value]"
@@ -136,6 +159,7 @@ help:
 	@echo "  visualisation             Run the visualisation CLI command"
 	@echo "  download-check            Run the download-check CLI command"
 	@echo "  check                     Run the checks CLI command"
+	@echo "  metrics                   Show trade count per asset / day"
 	@echo "  check-results             Execute the full integration flow used in tests"
 	@echo "  clear / clear-test        Remove generated artifacts"
 	@echo "  clear-env                 Remove the virtual environment"
@@ -166,6 +190,9 @@ check:
 
 visualisation:
 	$(CLI) visualisation $(strip $(VIS_ARGS))
+
+metrics:
+	$(CLI) metrics $(strip $(METRICS_ARGS))
 
 check-results:
 	$(CLI) generate $(SYMBOLS_ARGS) --output $(OUTPUT_GENERATE_TEST)

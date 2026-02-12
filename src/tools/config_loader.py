@@ -66,6 +66,12 @@ class ComputeBarsConfig(BaseModel):
     fill_missing: bool = Field(default=True)
     filters: BarsFiltersConfig = Field(default_factory=BarsFiltersConfig)
 
+class MetricsConfig(BaseModel):
+    input: str
+    symbols: List[str] = Field(default_factory=list)
+    start_date: Optional[str] = Field(default=None)
+    end_date: Optional[str] = Field(default=None)
+
 class Margin(BaseModel):
     top: int
     bottom: int
@@ -157,6 +163,9 @@ def load_config(module: str, overrides: dict = None) -> dict:
 
         if module == "compute_bars":
             config = ComputeBarsConfig(**config).model_dump()
+
+        if module == "metrics":
+            config = MetricsConfig(**config).model_dump()
 
         if module == "plots":
             config = PlotlyConfig(**config).model_dump()
